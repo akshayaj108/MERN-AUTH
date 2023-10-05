@@ -1,4 +1,4 @@
-import { Link, json } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 export default function SignUp() {
@@ -8,6 +8,7 @@ export default function SignUp() {
     isError: false,
     msg: "Something Went Wrong",
   });
+  const navigate = useNavigate();
   const handleChange = (e) => {
     const { id, value } = e.target;
     setForm({ ...form, [id]: value });
@@ -27,9 +28,13 @@ export default function SignUp() {
       const res = await response.json();
       setForm({});
       setLoading(false);
+
       if (response.ok === false) {
         setError({ ...error, isError: true, msg: res });
+      } else {
+        navigate("/");
       }
+
       console.log("server Response=", response);
       console.log("res", res);
     } catch (err) {
