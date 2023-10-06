@@ -1,23 +1,33 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import {
+  signInStart,
+  signInSuccess,
+  signInFailure,
+} from "../redux/user/userSlice";
+import { useDispatch, useSelector } from "react-redux";
 
-export default function SignUp() {
+export default function SignIn() {
   const [form, setForm] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState({
-    isError: false,
-    msg: "Something Went Wrong",
-  });
+  const { loading, error, currentUser } = useSelector((state) => state.user);
+  console.log(
+    "loadin and error state from redux===",
+    error,
+    "and",
+    loading,
+    "  user  ",
+    currentUser
+  );
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const handleChange = (e) => {
     const { id, value } = e.target;
     setForm({ ...form, [id]: value });
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError({ ...error, isError: false });
     try {
-      setLoading(true);
+      dispatch(signInStart());
       const response = await fetch("http://localhost:3000/api/auth/signin", {
         method: "POST",
         headers: {
@@ -26,20 +36,17 @@ export default function SignUp() {
         body: JSON.stringify(form),
       });
       const res = await response.json();
-      setForm({});
-      setLoading(false);
-
+      console.log("successRes==", res);
       if (response.ok === false) {
-        setError({ ...error, isError: true, msg: res });
+        dispatch(signInFailure(res.error));
+        return;
       } else {
+        dispatch(signInSuccess(res));
         navigate("/");
+        return;
       }
-
-      console.log("server Response=", response);
-      console.log("res", res);
     } catch (err) {
-      setLoading(false);
-      setError({ ...error, isError: true, msg: err?.message });
+      dispatch(signInFailure(err));
     }
   };
   return (
@@ -74,7 +81,7 @@ export default function SignUp() {
         </Link>
       </div>
       <p className="text-red-600 font-semibold text-center">
-        {error.isError && error.msg}
+        {error ? error || "Something went wrong" : ""}
       </p>
     </div>
   );

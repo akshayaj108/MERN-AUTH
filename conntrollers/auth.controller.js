@@ -26,9 +26,9 @@ export const signup = async (req, res, next) => {
   }
 };
 export const signin = async (req, res, next) => {
-  console.log(req.body);
   try {
     const validUser = await userModel.findOne({ email: req.body.email });
+
     if (!validUser) return next(errHandler(404, "User Email not found"));
     const isAuthenticate = await bcryptjs.compareSync(
       req.body.password,
@@ -38,11 +38,12 @@ export const signin = async (req, res, next) => {
 
     const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
     const { password, ...rest } = validUser._doc;
+
     const expiryDate = new Date(Date.now() + 3600000); //1-hour
     return res
       .cookie("access_token", token, { httpOnly: true, expires: expiryDate })
       .status(200)
-      .json({ message: "Successfully Logged In", ...rest });
+      .json(rest);
   } catch (error) {
     next(error);
   }
